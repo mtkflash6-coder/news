@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'mtkflash6@gmail.com'
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidNewsArticle(data) {
+      return data.keys().hasAll(['title', 'summary', 'category', 'authorId', 'createdAt', 'imageUrl']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+             data.summary is string && data.summary.size() > 0 && data.summary.size() <= 1000 &&
+             data.category is string &&
+             data.authorId == request.auth.uid &&
+             data.createdAt == request.time &&
+             data.imageUrl is string &&
+             (data.get('isFeatured', false) is bool);
+    }
+
+    match /news/{articleId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidNewsArticle(incoming());
+      allow update: if isAdmin() && isValidNewsArticle(incoming()) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['title', 'summary', 'content', 'category', 'imageUrl', 'isFeatured', 'updatedAt']) &&
+        incoming().updatedAt == request.time
+      );
+      allow delete: if isAdmin();
+    }
+
+    match /admins/{adminUid} {
+      allow read: if isSignedIn() && (request.auth.uid == adminUid || isAdmin());
+      // Admin bootstrapping - only mtkflash6@gmail.com can create other admins for now
+      allow write: if request.auth.token.email == 'mtkflash6@gmail.com';
+    }
+  }
+}

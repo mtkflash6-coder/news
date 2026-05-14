@@ -1,0 +1,8 @@
+{
+  "name": "XRG News",
+  "description": "A comprehensive local news platform for Khulna Division, providing Bengali news, weather, traffic updates, and local event information.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": []
+}

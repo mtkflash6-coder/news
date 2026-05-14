@@ -1,0 +1,41 @@
+{
+  "entities": {
+    "NewsArticle": {
+      "title": "News Article",
+      "description": "A news article posted on XRG News.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "The title of the news article" },
+        "summary": { "type": "string", "description": "A short summary of the news" },
+        "content": { "type": "string", "description": "The full content of the news article" },
+        "category": { "type": "string", "description": "The category of the news (e.g., Khulna, Sports)" },
+        "authorId": { "type": "string", "description": "The UID of the administrator who posted it" },
+        "authorName": { "type": "string", "description": "The name of the author" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the article was created" },
+        "imageUrl": { "type": "string", "description": "URL to the featured image" },
+        "isFeatured": { "type": "boolean", "description": "Whether this news is featured on the homepage" }
+      },
+      "required": ["title", "summary", "category", "authorId", "createdAt", "imageUrl"]
+    },
+    "Admin": {
+      "title": "Administrator",
+      "description": "A user with administrative privileges.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["editor", "admin"] }
+      },
+      "required": ["email", "role"]
+    }
+  },
+  "firestore": {
+    "/news/{articleId}": {
+      "schema": "NewsArticle",
+      "description": "Collection of news articles."
+    },
+    "/admins/{adminUid}": {
+      "schema": "Admin",
+      "description": "Collection of administrators."
+    }
+  }
+}
